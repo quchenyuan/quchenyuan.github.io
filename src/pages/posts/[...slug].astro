@@ -1,0 +1,46 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import 'katex/dist/katex.min.css';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props as { post: CollectionEntry<'posts'> };
+const { Content } = await render(post);
+const formatDate = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'long', timeZone: 'UTC' });
+const isoDate = (date: Date) => date.toISOString().slice(0, 10);
+---
+
+<Base title={post.data.title} description={post.data.description}>
+  <article class="post">
+    <header class="post-header">
+      <h1 class="post-title">{post.data.title}</h1>
+      <div class="post-meta">
+        <time datetime={isoDate(post.data.date)}>{formatDate.format(post.data.date)}</time>
+        {
+          post.data.updated && (
+            <span>
+              更新于{' '}
+              <time datetime={isoDate(post.data.updated)}>
+                {formatDate.format(post.data.updated)}
+              </time>
+            </span>
+          )
+        }
+      </div>
+      <p class="post-dek">{post.data.description}</p>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+    <footer class="post-footer">
+      <a href="/">← 返回首页</a>
+    </footer>
+  </article>
+</Base>

@@ -1,0 +1,10 @@
+/*
+  System CJK stacks. The Latin faces in fonts.css are listed before these, so
+  Latin glyphs come from the webfonts and Han glyphs fall through to whatever
+  the reader already has.
+*/
+:root {
+  --cjk-sans: 'PingFang SC', 'HarmonyOS Sans SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Noto Sans CJK SC', 'Source Han Sans SC', sans-serif;
+  --cjk-serif: 'Songti SC', 'Noto Serif CJK SC', 'Source Han Serif SC', 'SimSun', serif;
+}

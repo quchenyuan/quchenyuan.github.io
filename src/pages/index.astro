@@ -1,0 +1,32 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { SITE } from '../consts';
+
+const posts = (await getCollection('posts')).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf() || a.id.localeCompare(b.id),
+);
+const formatDate = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'long', timeZone: 'UTC' });
+const isoDate = (date: Date) => date.toISOString().slice(0, 10);
+---
+
+<Base home>
+  <section class="home">
+    <p class="home-intro">{SITE.description}</p>
+    {
+      posts.length === 0 ? (
+        <p class="empty">还没有文章。</p>
+      ) : (
+        <ul class="post-list">
+          {posts.map((post) => (
+            <li class="post-item">
+              <time datetime={isoDate(post.data.date)}>{formatDate.format(post.data.date)}</time>
+              <a class="post-link" href={`/posts/${post.id}/`}>{post.data.title}</a>
+              <p class="post-desc">{post.data.description}</p>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </section>
+</Base>

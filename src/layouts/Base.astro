@@ -1,0 +1,52 @@
+---
+import '../styles/fonts.css';
+import '../styles/cjk.css';
+import '../styles/global.css';
+import { SITE } from '../consts';
+
+interface Props {
+  title?: string;
+  description?: string;
+  home?: boolean;
+  noindex?: boolean;
+}
+
+const { title, description = SITE.description, home = false, noindex = false } = Astro.props;
+const pageTitle = title ? `${title} — ${SITE.title}` : SITE.title;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+const year = new Date().getFullYear();
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="light dark" />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" type="application/rss+xml" title={SITE.title} href="/rss.xml" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <header class="site-header wrap">
+      {home ? (
+        <h1 class="site-title">{SITE.title}</h1>
+      ) : (
+        <a class="site-title" href="/">{SITE.title}</a>
+      )}
+      <nav class="site-nav" aria-label="站点">
+        <a href="/rss.xml">RSS</a>
+      </nav>
+    </header>
+    <main class="wrap">
+      <slot />
+    </main>
+    <footer class="site-footer wrap">
+      <span>© {year} {SITE.title}</span>
+      <a href="/rss.xml">RSS</a>
+    </footer>
+  </body>
+</html>
