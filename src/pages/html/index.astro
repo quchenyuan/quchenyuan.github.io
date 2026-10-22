@@ -1,0 +1,32 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getHtmlPages } from '../../lib/html-pages';
+
+const pages = getHtmlPages();
+const formatDate = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'long', timeZone: 'UTC' });
+const displayDate = (date: string) => formatDate.format(new Date(`${date}T00:00:00Z`));
+---
+
+<Base title="HTML 页面" description="以完整 HTML 原样托管的页面。">
+  <section class="home">
+    <header class="post-header">
+      <h1 class="post-title">HTML 页面</h1>
+      <p class="post-dek">已经渲染好的完整页面，按原样托管，保留各自的排版。</p>
+    </header>
+    {
+      pages.length === 0 ? (
+        <p class="empty">还没有 HTML 页面。</p>
+      ) : (
+        <ul class="post-list">
+          {pages.map((page) => (
+            <li class="post-item">
+              {page.date && <time datetime={page.date}>{displayDate(page.date)}</time>}
+              <a class="post-link" href={`/html/${page.slug}/`}>{page.title}</a>
+              {page.description && <p class="post-desc">{page.description}</p>}
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </section>
+</Base>

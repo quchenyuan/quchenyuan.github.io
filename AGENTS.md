@@ -8,8 +8,15 @@
   content. Never run `git add -A`; stage the post and its image directory explicitly.
 - `npm run build` must pass before a push.
 - The reader site ships zero client JavaScript. Do not add scripts for features CSS
-  can handle.
+  can handle. HTML pages under `public/html/` must be stripped of scripts before import.
 - Fonts are self-hosted. Do not add CDN font or stylesheet requests.
 - A published slug is permanent. Do not rename a post file after it is live.
+- Markdown posts live in `src/content/posts/`. Complete rendered HTML documents live
+  in `public/html/<slug>/index.html` and are copied verbatim to `/html/<slug>/`.
+  Before importing, strip admin/login, comments, analytics, editor links, gated or
+  private links, and old canonical/OG URLs. Keep page assets relative inside the
+  folder; `_`-prefixed directories are skipped by the `/html/` index.
+- Markdown posts go to `/posts/`, RSS and the home page. HTML pages are listed only
+  on `/html/` and are not in RSS.
 - The old repository `quchenyuan/blog` and its deployment are out of scope. Do not
   modify, migrate, or delete anything there from this repository.

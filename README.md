@@ -7,10 +7,12 @@ Actions 里构建，GitHub Pages 托管。没有后台，没有数据库，没�
 
 - 首页：文章列表
 - 文章：`/posts/<slug>/`
+- HTML 页面：`/html/<slug>/`
 - RSS：`/rss.xml`
 - 404：`/404.html`
 
-读者面没有 JavaScript、评论、搜索、标签、分区或门禁。
+Markdown 页面没有 JavaScript、评论、搜索、标签、分区或门禁。HTML 页面是原样托管的
+完整文档，导入前需要自己清理干净。
 
 ## 写作（全部在服务器上）
 
@@ -70,6 +72,14 @@ git push
 gh run watch
 ```
 
+导入完整 HTML 页面时：
+
+```bash
+git add public/html/my-page/
+git commit -m "html: 标题"
+git push
+```
+
 push 后 GitHub Actions 会自动构建并部署，通常 1–2 分钟。部署失败时线上仍是上一个
 版本，不会变成空白。
 
@@ -109,6 +119,40 @@ updated: 2026-10-23
 站点在 `https://quchenyuan.github.io/` 根路径，所以不需要 base；不要改成子路径部署，
 否则这些链接和字体路径都会失效。
 
+## 已渲染的 HTML
+
+完整的 HTML 文档不要放进 `src/content/posts/`。放到 `public/html/<slug>/`，构建时原样
+复制，发布到 `/html/<slug>/`：
+
+```text
+public/html/my-page/
+├─ index.html      # 完整文档，原样发布
+├─ meta.json       # 可选：标题、摘要、日期
+└─ ...             # 该页面自己的 CSS、图片等，用相对路径引用
+```
+
+`meta.json`：
+
+```json
+{
+  "title": "标题",
+  "description": "一句话摘要",
+  "date": "2026-07-30"
+}
+```
+
+- 缺少 `meta.json` 时，列表标题取 `<title>`，摘要取 `<meta name="description">`，
+  日期取 `<meta property="article:published_time">`；都没有也能发布，只是列表信息更少。
+- `/html/` 的列表由构建时扫描目录生成。`_` 或 `.` 开头的目录不列出，可用来放
+  `public/html/_shared/` 这类共享资源，页面里用 `/html/_shared/...` 引用。
+- 页面内资源尽量用相对路径（`./base.css`），不要依赖旧站 `/_astro/` 下的哈希文件。
+- HTML 页面不套新站模板，也不进 RSS；首页只列 Markdown 文章。
+- **导入前必须清理**：admin/login、评论、统计、旧编辑器入口、门禁或私人链接，
+  以及带旧域名/IP 的 canonical 和 OG 标签。仓库是公开的，页面里的脚本会真实执行。
+- 只有正文片段、没有 `<html>` 的 HTML：直接粘进 `.md` 正文，Markdown 管线会原样输出，
+  并套用站点排版；不必走 `public/html/`。
+- GitHub Pages 有 1 GB 站点上限、单文件 100 MB 上限；大量归档要压缩图片，不要放视频。
+
 ## 数学与代码
 
 - 行内公式 `$E = mc^2$`，块级公式用 `$$ ... $$`。
@@ -134,12 +178,13 @@ Actions 会部署。公开仓库的 Rules 相同：不要提交私人内容或�
 ## 旧站
 
 `quchenyuan/blog` 和旧服务器上的 SSR 站保持原样，不迁移、不停机。新站验证通过后
-再单独决定归档或下线。旧内容（尤其原来的 gated 笔记）不要复制进这个公开仓库。
+再单独决定归档或下线。旧内容里的 gated 笔记、私人地址和密钥不要复制进这个公开仓库；
+导入 HTML 前按上面的清理清单检查。
 
 ## 规则
 
 - Node 26（`.nvmrc`）；依赖版本钉死，lockfile 入库，不随手升级。
 - push 前跑一次 `npm run build`。
-- 读者面不加客户端脚本；能用 CSS 做的不要用 JS。
+- 读者面不加客户端脚本；能用 CSS 做的不要用 JS。HTML 页面导入前清掉脚本。
 - 字体自托管，不引 Google Fonts 或其他 CDN。
 - 发布过的 slug 视为永久地址。

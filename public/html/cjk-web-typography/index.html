@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>中英混排的几个真问题</title>
+<meta name="description" content="行高、字体回退顺序、以及为什么我没有给中文正文上 Web 字体。">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://quchenyuan.github.io/html/cjk-web-typography/">
+<link rel="stylesheet" href="./base.css">
+<style>
+.legacy-back { margin: 1.5rem 0 0; font-family: var(--font-ui, sans-serif); font-size: .82rem; }
+.legacy-back a { color: var(--ink-faint, #6f665a); }
+.legacy-foot { margin-top: 3rem; padding-top: 1.2rem; border-top: 1px solid var(--rule, #ddd5c8); }
+</style>
+</head>
+<body>
+<main class="wrap">
+<p class="legacy-back"><a href="/html/">← HTML 页面</a></p>
+<article class="post">
+<h1 class="post-title">中英混排的几个真问题</h1>
+<p class="post-dek">行高、字体回退顺序、以及为什么我没有给中文正文上 Web 字体。</p>
+<div class="byline"><time datetime="2026-07-30">2026年7月30日</time></div>
+<div class="prose"><p>给中英混排的博客做排版，麻烦不在审美，在几个具体的物理事实。</p>
+<h2 id="一汉字是方的">一、汉字是方的</h2>
+<p>拉丁字母有升部和降部，视觉重心靠上；汉字撑满字面框。同样的 <code>line-height</code>，
+中文看起来会比英文挤。所以行高必须跟着语言走，而不是全站一个值：</p>
+<pre class="astro-code astro-code-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" data-language="css"><code><span class="line"><span style="color:#6F42C1;--shiki-dark:#B392F0">:root</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> { </span><span style="color:#E36209;--shiki-dark:#FFAB70">--measure</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">68</span><span style="color:#D73A49;--shiki-dark:#F97583">ch</span><span style="color:#24292E;--shiki-dark:#E1E4E8">; }</span></span>
+<span class="line"><span style="color:#22863A;--shiki-dark:#85E89D">html</span><span style="color:#24292E;--shiki-dark:#E1E4E8">[</span><span style="color:#6F42C1;--shiki-dark:#B392F0">lang</span><span style="color:#D73A49;--shiki-dark:#F97583">^=</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"zh"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">] { </span><span style="color:#005CC5;--shiki-dark:#79B8FF">line-height</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">1.75</span><span style="color:#24292E;--shiki-dark:#E1E4E8">; </span><span style="color:#E36209;--shiki-dark:#FFAB70">--measure</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">36</span><span style="color:#D73A49;--shiki-dark:#F97583">em</span><span style="color:#24292E;--shiki-dark:#E1E4E8">; }</span></span>
+<span class="line"><span style="color:#22863A;--shiki-dark:#85E89D">html</span><span style="color:#24292E;--shiki-dark:#E1E4E8">[</span><span style="color:#6F42C1;--shiki-dark:#B392F0">lang</span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"en"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">]  { </span><span style="color:#005CC5;--shiki-dark:#79B8FF">line-height</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: </span><span style="color:#005CC5;--shiki-dark:#79B8FF">1.6</span><span style="color:#24292E;--shiki-dark:#E1E4E8">; }</span></span></code></pre>
+<h2 id="二字体回退顺序会咬人">二、字体回退顺序会咬人</h2>
+<p>如果把中文字体写在拉丁字体前面，中文字体里那套半宽拉丁字母就会接管英文单词，
+于是代码和英文术语会变得很难看。<strong>拉丁字体必须写在前面</strong>：</p>
+<pre class="astro-code astro-code-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" data-language="css"><code><span class="line"><span style="color:#22863A;--shiki-dark:#85E89D">font-family</span><span style="color:#24292E;--shiki-dark:#E1E4E8">: Newsreader, "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", </span><span style="color:#22863A;--shiki-dark:#85E89D">sans-serif</span><span style="color:#24292E;--shiki-dark:#E1E4E8">;</span></span></code></pre>
+<p>浏览器逐字符回退，所以拉丁字符命中第一个，汉字落到第二个。顺序错了，两边都难看。</p>
+<h2 id="三我没上中文-web-字体">三、我没上中文 Web 字体</h2>
+<p>一套完整的中文字体动辄几 MB——<code>Noto Sans SC</code> 全量接近 10 MB。
+即便切片，首屏也要拉不少包。而系统字体在读者机器上已经存在，且质量不差。</p>
+<p>顺带一句：霞鹜文楷很好看，但作者自己都说它「并不太适合大段正文排版」。</p>
+<h2 id="四中西文之间的空格">四、中西文之间的空格</h2>
+<p>中文与拉丁文之间加四分之一空格，观感会明显变好。这件事应该在构建期做，而不是让读者跑 JS：</p>
+<pre class="astro-code astro-code-themes github-light github-dark" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8; overflow-x: auto;" data-language="plaintext"><code><span class="line"><span>构建期插入 → HTML 里就是对的 → 没有 JS，没有重排</span></span></code></pre>
+<p>如果哪天想给中文换一套定制字体，再用 <code>cn-font-split</code> 做切片就好，不必现在背这个包。</p></div>
+<p class="legacy-back legacy-foot"><a href="/html/">← 返回 HTML 页面</a></p>
+</article>
+</main>
+</body>
+</html>

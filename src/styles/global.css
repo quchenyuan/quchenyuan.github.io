@@ -115,6 +115,8 @@ h1.site-title {
 }
 
 .site-nav {
+  display: flex;
+  gap: 1rem;
   font-family: var(--font-ui);
   font-size: 0.8rem;
   color: var(--ink-faint);
