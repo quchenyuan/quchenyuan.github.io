@@ -1,11 +1,18 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
+import { categories } from '../categories';
+import { getEntries } from '../lib/entries';
 import { SITE } from '../consts';
 
 const posts = (await getCollection('posts')).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf() || a.id.localeCompare(b.id),
 );
+const entries = await getEntries();
+const categoryCards = categories.map((category) => ({
+  ...category,
+  count: entries.filter((entry) => entry.category === category.slug).length,
+}));
 const formatDate = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'long', timeZone: 'UTC' });
 const isoDate = (date: Date) => date.toISOString().slice(0, 10);
 ---
@@ -14,19 +21,42 @@ const isoDate = (date: Date) => date.toISOString().slice(0, 10);
   <section class="home">
     <p class="home-intro">{SITE.description}</p>
     {
-      posts.length === 0 ? (
-        <p class="empty">还没有文章。</p>
-      ) : (
-        <ul class="post-list">
-          {posts.map((post) => (
-            <li class="post-item">
-              <time datetime={isoDate(post.data.date)}>{formatDate.format(post.data.date)}</time>
-              <a class="post-link" href={`/posts/${post.id}/`}>{post.data.title}</a>
-              <p class="post-desc">{post.data.description}</p>
-            </li>
-          ))}
-        </ul>
+      categoryCards.length > 0 && (
+        <section class="category-index" id="categories" aria-labelledby="categories-heading">
+          <h2 class="section-title" id="categories-heading">分类</h2>
+          <ul class="category-grid">
+            {categoryCards.map((category) => (
+              <li>
+                <a class="category-card" href={`/categories/${category.slug}/`}>
+                  <span class="category-name">{category.title}</span>
+                  <span class="category-count">{category.count} 篇</span>
+                  {category.description && (
+                    <span class="category-desc">{category.description}</span>
+                  )}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
       )
     }
+    <section class="post-index" aria-labelledby="posts-heading">
+      <h2 class="section-title" id="posts-heading">文章</h2>
+      {
+        posts.length === 0 ? (
+          <p class="empty">还没有文章。</p>
+        ) : (
+          <ul class="post-list">
+            {posts.map((post) => (
+              <li class="post-item">
+                <time datetime={isoDate(post.data.date)}>{formatDate.format(post.data.date)}</time>
+                <a class="post-link" href={`/posts/${post.id}/`}>{post.data.title}</a>
+                <p class="post-desc">{post.data.description}</p>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </section>
   </section>
 </Base>

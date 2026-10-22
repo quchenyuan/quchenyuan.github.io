@@ -2,6 +2,7 @@
 title: 开始
 description: 新站的第一篇，用来验证 Markdown、代码和公式。
 date: 2026-10-22
+category: notes
 ---
 
 这里只放文字、代码和公式。

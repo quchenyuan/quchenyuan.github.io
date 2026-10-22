@@ -2,16 +2,17 @@
 
 <https://quchenyuan.github.io/>
 
-一个极简静态博客：仓库里的 Markdown 是唯一内容来源，Astro 在 GitHub
+一个极简静态博客：仓库里的 Markdown 和归档 HTML 就是内容，Astro 在 GitHub
 Actions 里构建，GitHub Pages 托管。没有后台，没有数据库，没有自定义编辑器。
 
-- 首页：文章列表
+- 首页：文章列表 + 分类入口
+- 分类：`/categories/<slug>/`，同时汇总 Markdown 和 HTML 文档
 - 文章：`/posts/<slug>/`
 - HTML 页面：`/html/<slug>/`
 - RSS：`/rss.xml`
 - 404：`/404.html`
 
-Markdown 页面没有 JavaScript、评论、搜索、标签、分区或门禁。HTML 页面是原样托管的
+Markdown 页面没有 JavaScript、评论、搜索、标签或门禁。HTML 页面是原样托管的
 完整文档，导入前需要自己清理干净。
 
 ## 写作（全部在服务器上）
@@ -33,10 +34,11 @@ git 都在服务器上。
 ### 新文章
 
 ```bash
-./scripts/new-post.sh my-slug "标题" "一句话摘要"
+./scripts/new-post.sh my-slug "标题" "一句话摘要" notes
 ```
 
 脚本会创建 `src/content/posts/my-slug.md` 和 `public/images/my-slug/`。
+第 4 个参数是可选的分类 slug，必须已经在 `src/categories.ts` 里；省略就不进分类页。
 slug 只能是小写 ASCII、用连字符分隔；中文放在 `title` 里。发布后不要改 slug，
 旧地址没有重定向层。
 
@@ -93,12 +95,14 @@ push 后 GitHub Actions 会自动构建并部署，通常 1–2 分钟。部署�
 title: 标题
 description: 一句话摘要
 date: 2026-10-22
+category: notes
 ---
 
 正文
 ```
 
-`description` 必填，首页和 RSS 都用它。`updated` 可选：
+`description` 必填，首页和 RSS 都用它。`category` 可选，必须是
+`src/categories.ts` 里的 slug。`updated` 可选：
 
 ```yaml
 updated: 2026-10-23
@@ -107,6 +111,28 @@ updated: 2026-10-23
 - 日期按 UTC 展示，新建文章时脚本用 `Asia/Shanghai` 取当天日期，所以不会差一天。
 - 没有 `draft` 字段。未提交的文件就是草稿；不要把草稿 commit 到公开仓库。
 - 文件平铺在 `src/content/posts/`，文件名就是 URL 里的 slug。
+
+## 分类
+
+分类不是目录，而是一份维护的列表：`src/categories.ts`。
+
+```ts
+{
+  slug: 'notes',
+  title: '笔记',
+  description: '日常记录与整理。',
+}
+```
+
+- 数组顺序就是首页分类卡片的顺序；分类 `slug` 也是 URL 的一部分，发布后不要改。
+- Markdown 在 frontmatter 写 `category: notes`；HTML 在 `meta.json` 写
+  `"category": "notes"`。两种文档会合并出现在 `/categories/notes/`。
+- 首页顶部展示全部分类（含「N 篇」计数），点进去是分类页，页内可返回全部分类或首页。
+- 没写分类的 Markdown 仍会出现在首页文章列表；没写分类的 HTML 仍会出现在 `/html/`，
+  只是不进分类页。
+- 写错分类 slug 会让 `npm run build` 失败，不会静默丢内容。新增分类先改
+  `src/categories.ts`，再给文档填 slug。
+- 分类只有一层；不做标签、多级分类或按目录自动归类。
 
 ## 图片
 
@@ -137,7 +163,8 @@ public/html/my-page/
 {
   "title": "标题",
   "description": "一句话摘要",
-  "date": "2026-07-30"
+  "date": "2026-07-30",
+  "category": "notes"
 }
 ```
 
@@ -146,7 +173,10 @@ public/html/my-page/
 - `/html/` 的列表由构建时扫描目录生成。`_` 或 `.` 开头的目录不列出，可用来放
   `public/html/_shared/` 这类共享资源，页面里用 `/html/_shared/...` 引用。
 - 页面内资源尽量用相对路径（`./base.css`），不要依赖旧站 `/_astro/` 下的哈希文件。
-- HTML 页面不套新站模板，也不进 RSS；首页只列 Markdown 文章。
+- HTML 页面不套新站模板，也不进 RSS；首页只列 Markdown 文章。HTML 通过 `/html/`
+  和分类页进入。
+- `meta.json.category` 可选，取值必须是 `src/categories.ts` 里的 slug。分类页会把
+  HTML 和 Markdown 按日期混排，HTML 条目带一个小标记。
 - **导入前必须清理**：admin/login、评论、统计、旧编辑器入口、门禁或私人链接，
   以及带旧域名/IP 的 canonical 和 OG 标签。仓库是公开的，页面里的脚本会真实执行。
 - 只有正文片段、没有 `<html>` 的 HTML：直接粘进 `.md` 正文，Markdown 管线会原样输出，
@@ -187,4 +217,4 @@ Actions 会部署。公开仓库的 Rules 相同：不要提交私人内容或�
 - push 前跑一次 `npm run build`。
 - 读者面不加客户端脚本；能用 CSS 做的不要用 JS。HTML 页面导入前清掉脚本。
 - 字体自托管，不引 Google Fonts 或其他 CDN。
-- 发布过的 slug 视为永久地址。
+- 发布过的文章和分类 slug 视为永久地址。

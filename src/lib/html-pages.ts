@@ -1,17 +1,20 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { getCategory } from '../categories';
 
 export interface HtmlPage {
   slug: string;
   title: string;
   description: string;
   date?: string;
+  category?: string;
 }
 
 interface Sidecar {
   title?: string;
   description?: string;
   date?: string;
+  category?: string;
 }
 
 const ROOT = join(process.cwd(), 'public', 'html');
@@ -53,6 +56,10 @@ export function getHtmlPages(): HtmlPage[] {
     const sidecar: Sidecar = existsSync(sidecarPath)
       ? JSON.parse(readFileSync(sidecarPath, 'utf8'))
       : {};
+    const category = sidecar.category?.trim();
+    if (category && !getCategory(category)) {
+      throw new Error(`Unknown category "${category}" in ${sidecarPath}; add it to src/categories.ts.`);
+    }
 
     const rawTitle = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim();
     const rawDescription = metaContent(html, 'name', 'description');
@@ -64,6 +71,7 @@ export function getHtmlPages(): HtmlPage[] {
       title: sidecar.title?.trim() || (rawTitle ? decodeEntities(rawTitle) : entry.name),
       description: sidecar.description?.trim() || (rawDescription ? decodeEntities(rawDescription) : ''),
       ...(/^\d{4}-\d{2}-\d{2}$/.test(date) ? { date } : {}),
+      ...(category ? { category } : {}),
     });
   }
 

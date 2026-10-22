@@ -1,0 +1,49 @@
+---
+import Base from '../../layouts/Base.astro';
+import { categories, type Category } from '../../categories';
+import { getEntries } from '../../lib/entries';
+
+export async function getStaticPaths() {
+  return categories.map((category) => ({
+    params: { category: category.slug },
+    props: { category },
+  }));
+}
+
+const { category } = Astro.props as { category: Category };
+const entries = (await getEntries()).filter((entry) => entry.category === category.slug);
+const formatDate = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'long', timeZone: 'UTC' });
+const displayDate = (date: string) => formatDate.format(new Date(`${date}T00:00:00Z`));
+---
+
+<Base title={category.title} description={category.description ?? `分类：${category.title}`}>
+  <section class="category-page">
+    <a class="back-link" href="/#categories">← 全部分类</a>
+    <header class="post-header category-header">
+      <h1 class="post-title">{category.title}</h1>
+      {category.description && <p class="post-dek">{category.description}</p>}
+      <div class="post-meta">共 {entries.length} 篇</div>
+    </header>
+    {
+      entries.length === 0 ? (
+        <p class="empty">这个分类还没有内容。</p>
+      ) : (
+        <ul class="post-list">
+          {entries.map((entry) => (
+            <li class="post-item">
+              {entry.date && <time datetime={entry.date}>{displayDate(entry.date)}</time>}
+              <div class="entry-title">
+                <a class="post-link" href={entry.href}>{entry.title}</a>
+                {entry.kind === 'html' && <span class="entry-badge">HTML</span>}
+              </div>
+              {entry.description && <p class="post-desc">{entry.description}</p>}
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    <footer class="category-footer">
+      <a class="back-link" href="/">← 返回首页</a>
+    </footer>
+  </section>
+</Base>

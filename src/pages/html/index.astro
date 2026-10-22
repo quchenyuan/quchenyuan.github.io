@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import { getCategory } from '../../categories';
 import { getHtmlPages } from '../../lib/html-pages';
 
 const pages = getHtmlPages();
@@ -18,13 +19,23 @@ const displayDate = (date: string) => formatDate.format(new Date(`${date}T00:00:
         <p class="empty">还没有 HTML 页面。</p>
       ) : (
         <ul class="post-list">
-          {pages.map((page) => (
-            <li class="post-item">
-              {page.date && <time datetime={page.date}>{displayDate(page.date)}</time>}
-              <a class="post-link" href={`/html/${page.slug}/`}>{page.title}</a>
-              {page.description && <p class="post-desc">{page.description}</p>}
-            </li>
-          ))}
+          {pages.map((page) => {
+            const category = page.category ? getCategory(page.category) : undefined;
+            return (
+              <li class="post-item">
+                {page.date && <time datetime={page.date}>{displayDate(page.date)}</time>}
+                <div class="entry-title">
+                  <a class="post-link" href={`/html/${page.slug}/`}>{page.title}</a>
+                  {category && (
+                    <a class="entry-category" href={`/categories/${category.slug}/`}>
+                      {category.title}
+                    </a>
+                  )}
+                </div>
+                {page.description && <p class="post-desc">{page.description}</p>}
+              </li>
+            );
+          })}
         </ul>
       )
     }

@@ -2,11 +2,12 @@
 set -euo pipefail
 
 usage() {
-  echo "usage: $0 <slug> <title> <description>" >&2
+  echo "usage: $0 <slug> <title> <description> [category]" >&2
+  echo "category is a slug from src/categories.ts" >&2
   exit 2
 }
 
-[ "$#" -eq 3 ] || usage
+[ "$#" -eq 3 ] || [ "$#" -eq 4 ] || usage
 
 slug=$1
 title=$2
@@ -25,6 +26,18 @@ file="$root/src/content/posts/$slug.md"
   exit 1
 }
 
+category=${4:-}
+if [ -n "$category" ]; then
+  [[ $category =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]] || {
+    echo "category must be lowercase ASCII kebab-case: $category" >&2
+    exit 2
+  }
+  grep -qE "^[[:space:]]*slug: '$category',?$" "$root/src/categories.ts" || {
+    echo "unknown category: $category (add it to src/categories.ts first)" >&2
+    exit 2
+  }
+fi
+
 yaml_quote() {
   local value=$1
   value=${value//\'/\'\'}
@@ -37,6 +50,7 @@ mkdir -p "$root/public/images/$slug"
   printf 'title: %s\n' "$(yaml_quote "$title")"
   printf 'description: %s\n' "$(yaml_quote "$description")"
   printf 'date: %s\n' "$(TZ=Asia/Shanghai date +%F)"
+  [ -z "$category" ] || printf 'category: %s\n' "$category"
   printf -- '---\n\n\n'
 } > "$file"
 
